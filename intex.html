@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>故事织网</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #eef3e6;
+            font-family: 'Segoe UI', 'Comic Neue', 'Chalkboard SE', 'Roboto', sans-serif;
+            padding: 24px 20px;
+            color: #2c3e2b;
+        }
+
+        .story-weave-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fffcf5;
+            border-radius: 56px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 24px 28px 36px;
+            transition: all 0.2s;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(125deg, #4c6a3b, #8bb56a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 3px dashed #cbdaa7;
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+        }
+
+        /* ---------- API 配置下拉面板 ---------- */
+        .api-config-wrap {
+            position: relative;
+        }
+
+        .api-badge {
+            background: #e9e0cd;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-family: monospace;
+            color: #48632e;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+        }
+
+        .api-config-panel {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 10px);
+            width: 340px;
+            max-width: calc(100vw - 48px);
+            background: #fffcf5;
+            border: 1px solid #e0d3b4;
+            border-radius: 24px;
+            padding: 18px 20px;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.14);
+            z-index: 60;
+        }
+
+        .api-config-panel.show {
+            display: block;
+        }
+
+        .api-config-panel h4 {
+            font-size: 1rem;
+            color: #4c6a3b;
+            margin-bottom: 4px;
+        }
+
+        .api-config-panel label {
+            display: block;
+            font-size: 0.75rem;
+            color: #7e6b48;
+            margin: 12px 0 5px;
+        }
+
+        .api-config-panel input,
+        .api-config-panel select {
+            width: 100%;
+            flex: none;
+            padding: 9px 14px;
+            border-radius: 18px;
+            border: 1px solid #ddd0b0;
+            background: #fff;
+            font-size: 0.82rem;
+            font-family: inherit;
+        }
+
+        .api-config-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .api-config-actions button {
+            flex: 1;
+            padding: 9px 10px;
+            font-size: 0.8rem;
+        }
+
+        .api-config-hint {
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: #8a7a55;
+            line-height: 1.4;
+        }
+
+        .flex-main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .word-pool-area {
+            flex: 1.4;
+            min-width: 280px;
+        }
+
+        .story-ai-area {
+            flex: 1.6;
+            min-width: 320px;
+        }
+
+        .card-panel {
+            background: #fef7e9;
+            border-radius: 40px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f0e2cc;
+        }
+
+        .card-panel h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 8px solid #afcf8c;
+            padding-left: 16px;
+            margin-bottom: 16px;
+            font-size: 1.4rem;
+        }
+
+        .word-cloud {
+            background: #e9dfca;
+            border-radius: 48px;
+            padding: 16px 20px;
+            min-height: 130px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .word-tag {
+            background: #fff2dc;
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #5a3e1f;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-word {
+            cursor: pointer;
+            font-weight: bold;
+            color: #b97f3a;
+            background: #ffe0b5;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        input, textarea {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 60px;
+            border: 1px solid #ddd0b0;
+            font-size: 1rem;
+            background: white;
+            font-family: inherit;
+        }
+
+        /* 增大造句输入框 */
+        .large-textarea {
+            width: 100%;
+            border-radius: 32px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            background: #e5cf9b;
+            border: none;
+            border-radius: 60px;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .primary-btn {
+            background: #8bb56a;
+            color: white;
+            box-shadow: 0 4px 0 #557a36;
+        }
+
+        .secondary-btn {
+            background: #f5e2b0;
+        }
+
+        .dual-column {
+            display: flex;
+            gap: 20px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .compare-card {
+            flex: 1;
+            background: #fef4e2;
+            border-radius: 32px;
+            padding: 18px;
+            border: 1px solid #e7dbbc;
+        }
+
+        .compare-card h4 {
+            border-left: 10px solid #c7a55b;
+            padding-left: 14px;
+            margin-bottom: 14px;
+        }
+
+        .scroll-text {
+            max-height: 240px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            font-size: 1rem;
+        }
+
+        .feedback-bubble {
+            background: #e0f0d0;
+            border-radius: 28px;
+            padding: 16px 20px;
+            margin: 18px 0;
+            color: #2a5820;
+            font-weight: 500;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        select {
+            padding: 8px 14px;
+            border-radius: 32px;
+            background: #fff2e0;
+            border: 1px solid #dccfaf;
+        }
+
+        @media (max-width: 780px) {
+            .story-weave-container { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="story-weave-container">
+    <div class="header-bar">
+        <h1>🕸️ 故事织网</h1>
+
+        <!-- API 配置：点开可设置主机 / 密钥 / 模型 -->
+        <div class="api-config-wrap">
+            <button id="apiConfigToggle" class="api-badge">⚙️ API 配置</button>
+            <div id="apiConfigPanel" class="api-config-panel">
+                <h4>API 配置</h4>
+
+                <label for="apiHostSelect">主机地址（可选预设或自定义）</label>
+                <select id="apiHostSelect">
+                    <option value="custom" selected>自定义主机地址…</option>
+                    <option value="https://api.vectorengine.ai/v1/chat/completions">https://api.vectorengine.ai/v1/chat/completions</option>
+                    <option value="https://api.deepseek.com/v1/chat/completions">https://api.deepseek.com/v1/chat/completions</option>
+                    <option value="https://api.openai.com/v1/chat/completions">https://api.openai.com/v1/chat/completions</option>
+                </select>
+                <input type="text" id="apiHostCustom" placeholder="https://your-host/v1/chat/completions" style="display:block; margin-top:8px;">
+
+                <label for="apiKeyInput">API 密钥</label>
+                <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+
+                <label for="modelInput">模型名称</label>
+                <input type="text" id="modelInput" placeholder="例如 deepseek-chat" autocomplete="off">
+
+                <div class="api-config-actions">
+                    <button id="saveApiConfigBtn" class="primary-btn">保存配置</button>
+                    <button id="clearApiConfigBtn" class="secondary-btn">清空配置</button>
+                </div>
+                <p class="api-config-hint" id="apiConfigHint">请填写主机、密钥和模型名称后保存。</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-main">
+        <!-- 左侧: 词语捕手 + 词句纺纱 -->
+        <div class="word-pool-area">
+            <div class="card-panel">
+                <h3>📦 词语捕手</h3>
+                <div id="wordPoolContainer" class="word-cloud">
+                    <span style="color: #9b8b64;">✨ 抽取卡牌或手动添加词语</span>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="wordInput" placeholder="输入一个词语，例如: 月亮 或 悄悄跳舞" autocomplete="off">
+                    <button id="addWordBtn" class="secondary-btn">➕ 添加词语</button>
+                    <button id="voiceWordBtn" class="secondary-btn">🎙️ 语音输入</button>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button id="drawCardBtn">🎴 抽一张故事卡牌</button>
+                    <button id="resetWordPoolBtn" style="background:#e9cf9b;">🗑️ 清空词语池</button>
+                </div>
+                <p style="font-size:0.75rem; margin-top: 12px; color:#7e6b48;">💡 小提示: 点击卡牌可快速加入词语，也可以说话添加。</p>
+            </div>
+
+            <!-- 词句纺纱：更大的输入框 + 独立语音按钮 -->
+            <div class="card-panel">
+                <h3>✏️ 词句纺纱</h3>
+                <textarea id="rawSentenceInput" class="large-textarea" rows="4" placeholder="试着用上面的词语造一个句子... 例如: 月亮猫跳舞下 (可以故意尝试不完整语序)&#10;也可以点击下方麦克风直接说话，系统会自动转文字。"></textarea>
+                <div class="btn-group" style="justify-content: flex-start;">
+                    <button id="voiceRawSentenceBtn" class="secondary-btn">🎙️ 语音造句</button>
+                    <button id="submitRawSentenceBtn" class="secondary-btn">🔍 获取反馈</button>
+                </div>
+                <div id="correctionFeedbackArea" class="feedback-bubble" style="background:#fef3dd;">
+                    💬 点击“获取反馈”，小织蛛会帮你优化句子。
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧: 织网引擎 + 双栏对比 + 朗读 -->
+        <div class="story-ai-area">
+            <div class="card-panel">
+                <h3>✨ 织网引擎</h3>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <select id="difficultySelect">
+                        <option value="beginner">蛛宝宝 (初级)</option>
+                        <option value="intermediate" selected>织网工 (中级)</option>
+                        <option value="advanced">织网大师 (高级)</option>
+                    </select>
+                    <button id="generateStoryBtn" class="primary-btn">🕸️ 故事纺织</button>
+                    <button id="speakStoryBtn" class="secondary-btn">🔊 朗读AI故事</button>
+                </div>
+                <div id="aiStoryDisplay" class="scroll-text" style="background:#fdf6e8; border-radius: 28px; padding: 18px; margin-top: 16px;">
+                    🌟 点击「故事纺织」将从你的词语池中编织一个精彩故事...
+                </div>
+            </div>
+
+            <!-- 双栏对比区域 -->
+            <div class="dual-column">
+                <div class="compare-card">
+                    <h4>📜 词句纱线</h4>
+                    <div id="originalMaterialBox" class="scroll-text">
+                        <em>词语池中的词语 / 你写下的句子</em>
+                    </div>
+                </div>
+                <div class="compare-card">
+                    <h4>✨ AI示例</h4>
+                    <div id="optimizedStoryBox" class="scroll-text">
+                        <em>生成的故事会出现在这里，与左侧对比阅读</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- API 配置（无预设密钥/主机/模型，全部由用户填写） ----------
+    const CONFIG_STORAGE_KEY = "storyWeaveApiConfig";
+
+    let apiUrl = "";
+    let modelName = "";
+    let apiKey = "";
+
+    // 词语池
+    let wordPool = [];
+    let lastGeneratedStory = "";
+    let lastRawSentenceForCorrection = "";
+
+    // DOM 元素
+    const apiConfigToggle = document.getElementById("apiConfigToggle");
+    const apiConfigPanel = document.getElementById("apiConfigPanel");
+    const apiHostSelect = document.getElementById("apiHostSelect");
+    const apiHostCustom = document.getElementById("apiHostCustom");
+    const apiKeyInput = document.getElementById("apiKeyInput");
+    const modelInput = document.getElementById("modelInput");
+    const saveApiConfigBtn = document.getElementById("saveApiConfigBtn");
+    const clearApiConfigBtn = document.getElementById("clearApiConfigBtn");
+    const apiConfigHint = document.getElementById("apiConfigHint");
+
+    const wordPoolContainer = document.getElementById("wordPoolContainer");
+    const wordInput = document.getElementById("wordInput");
+    const addWordBtn = document.getElementById("addWordBtn");
+    const voiceWordBtn = document.getElementById("voiceWordBtn");
+    const drawCardBtn = document.getElementById("drawCardBtn");
+    const resetWordPoolBtn = document.getElementById("resetWordPoolBtn");
+    const generateStoryBtn = document.getElementById("generateStoryBtn");
+    const speakStoryBtn = document.getElementById("speakStoryBtn");
+    const aiStoryDisplay = document.getElementById("aiStoryDisplay");
+    const originalMaterialBox = document.getElementById("originalMaterialBox");
+    const optimizedStoryBox = document.getElementById("optimizedStoryBox");
+    const rawSentenceInput = document.getElementById("rawSentenceInput");
+    const submitRawSentenceBtn = document.getElementById("submitRawSentenceBtn");
+    const voiceRawSentenceBtn = document.getElementById("voiceRawSentenceBtn");
+    const correctionFeedbackArea = document.getElementById("correctionFeedbackArea");
+    const difficultySelect = document.getElementById("difficultySelect");
+
+    // ---------- API 配置逻辑 ----------
+    function updateApiBadge() {
+        apiConfigToggle.textContent = modelName
+            ? `⚙️ API 配置 · ${modelName}`
+            : "⚙️ API 配置 · 未配置";
+    }
+
+    function syncApiConfigForm() {
+        const presets = [
+            "https://api.vectorengine.ai/v1/chat/completions",
+            "https://api.deepseek.com/v1/chat/completions",
+            "https://api.openai.com/v1/chat/completions"
+        ];
+        if (apiUrl && presets.includes(apiUrl)) {
+            apiHostSelect.value = apiUrl;
+            apiHostCustom.value = "";
+            apiHostCustom.style.display = "none";
+        } else {
+            apiHostSelect.value = "custom";
+            apiHostCustom.value = apiUrl || "";
+            apiHostCustom.style.display = "block";
+        }
+        apiKeyInput.value = apiKey;
+        modelInput.value = modelName;
+
+        if (apiKey && apiUrl && modelName) {
+            apiConfigHint.textContent = "✅ 已配置 API（保存在本机浏览器）";
+        } else {
+            apiConfigHint.textContent = "请填写主机、密钥和模型名称后保存。";
+        }
+        updateApiBadge();
+    }
+
+    function loadApiConfig() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(CONFIG_STORAGE_KEY) || "null");
+            if (saved) {
+                apiUrl = saved.url || "";
+                apiKey = saved.key || "";
+                modelName = saved.model || "";
+            }
+        } catch (e) { /* 忽略损坏的本地配置 */ }
+        syncApiConfigForm();
+    }
+
+    function saveApiConfig() {
+        const host = apiHostSelect.value === "custom"
+            ? apiHostCustom.value.trim()
+            : apiHostSelect.value;
+        const key = apiKeyInput.value.trim();
+        const model = modelInput.value.trim();
+
+        if (!host) {
+            apiConfigHint.textContent = "⚠️ 请填写或选择主机地址。";
+            return;
+        }
+        if (!key) {
+            apiConfigHint.textContent = "⚠️ 请填写 API 密钥。";
+            return;
+        }
+        if (!model) {
+            apiConfigHint.textContent = "⚠️ 请填写模型名称。";
+            return;
+        }
+
+        apiUrl = host;
+        apiKey = key;
+        modelName = model;
+
+        try {
+            localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify({
+                url: apiUrl, key: apiKey, model: modelName
+            }));
+        } catch (e) { /* 本地存储不可用时仅本次生效 */ }
+
+        syncApiConfigForm();
+        apiConfigHint.textContent = "✅ 配置已保存，即将关闭…";
+        setTimeout(() => {
+            apiConfigPanel.classList.remove("show");
+            syncApiConfigForm();
+        }, 700);
+    }
+
+    function clearApiConfig() {
+        apiUrl = "";
+        apiKey = "";
+        modelName = "";
+        try { localStorage.removeItem(CONFIG_STORAGE_KEY); } catch (e) { /* 忽略 */ }
+        syncApiConfigForm();
+        apiConfigHint.textContent = "已清空配置，请重新填写。";
+    }
+
+    function toggleApiConfigPanel(e) {
+        e.stopPropagation();
+        apiConfigPanel.classList.toggle("show");
+    }
+
+    function handleDocumentClick(e) {
+        if (!apiConfigPanel.contains(e.target) && e.target !== apiConfigToggle) {
+            apiConfigPanel.classList.remove("show");
+        }
+    }
+
+    function handleHostSelectChange() {
+        if (apiHostSelect.value === "custom") {
+            apiHostCustom.style.display = "block";
+            apiHostCustom.focus();
+        } else {
+            apiHostCustom.style.display = "none";
+        }
+    }
+
+    // 请求前检查 API 是否已配置
+    function ensureApiConfigured() {
+        if (!apiUrl || !apiKey || !modelName) {
+            correctionFeedbackArea.innerHTML = "⚙️ 请先点击右上角「API 配置」，填写主机地址、API 密钥和模型名称并保存。";
+            return false;
+        }
+        return true;
+    }
+
+    // ---------- 辅助函数 ----------
+    function updateWordPoolUI() {
+        if (wordPool.length === 0) {
+            wordPoolContainer.innerHTML = `<span style="color: #9b8b64;">🕸️ 词语池空空，抽卡或添加词语吧~</span>`;
+            return;
+        }
+        wordPoolContainer.innerHTML = wordPool.map((word, idx) => `
+            <span class="word-tag">
+                ${escapeHtml(word)}
+                <span class="remove-word" data-word="${escapeHtml(word)}" data-index="${idx}">✖</span>
+            </span>
+        `).join("");
+        document.querySelectorAll('.remove-word').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const wordToRemove = el.getAttribute('data-word');
+                wordPool = wordPool.filter(w => w !== wordToRemove);
+                updateWordPoolUI();
+                updateOriginalMaterialPreview();
+            });
+        });
+        updateOriginalMaterialPreview();
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function updateOriginalMaterialPreview() {
+        let rawContent = "";
+        if (wordPool.length > 0) {
+            rawContent += `📦 词语池: ${wordPool.join(" · ")}`;
+        } else {
+            rawContent += `📦 词语池: (暂无词语)`;
+        }
+        if (rawSentenceInput.value.trim()) {
+            rawContent += `\n\n✏️ 你的句子: ${rawSentenceInput.value.trim()}`;
+        } else {
+            rawContent += `\n\n✏️ 你的句子: 未提供，可输入句子获取反馈`;
+        }
+        originalMaterialBox.innerHTML = rawContent.replace(/\n/g, "<br>");
+    }
+
+    function speakText(text) {
+        if (!window.speechSynthesis) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "zh-CN";
+        utterance.rate = 0.9;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function showTemporaryFeedback(msg, bgColor) {
+        const orig = correctionFeedbackArea.innerHTML;
+        correctionFeedbackArea.innerHTML = `🕷️ ${msg}`;
+        correctionFeedbackArea.style.background = bgColor || "#e0f0d0";
+        setTimeout(() => {
+            if (correctionFeedbackArea.innerHTML.includes(msg)) {
+                correctionFeedbackArea.innerHTML = orig;
+                correctionFeedbackArea.style.background = "#fef3dd";
+            }
+        }, 3000);
+    }
+
+    // 抽卡并添加词语
+    const allCards = ["外星人","冰淇淋","影子","书包","月亮","蜘蛛","魔法棒","雨伞","蛋糕","机器人","树叶","云朵","眼镜","尾巴","星星","钥匙","枕头","泡泡","火车","恐龙","漂浮","融化","躲藏","跳舞","拥抱","旋转","逃跑","悄悄地","亮晶晶的","湿漉漉的","轻飘飘的","圆滚滚的","慢吞吞的","五颜六色的","温暖的","软绵绵的"];
+    function drawRandomCardAndAdd() {
+        const randomIndex = Math.floor(Math.random() * allCards.length);
+        const newWord = allCards[randomIndex];
+        if (!wordPool.includes(newWord)) {
+            wordPool.push(newWord);
+        } else {
+            wordPool.push(newWord + "✨");
+        }
+        updateWordPoolUI();
+        speakText(newWord);
+        showTemporaryFeedback(`✨ 添加词语「${newWord}」`, "#d9e6c3");
+    }
+
+    // 语音识别：用于词语添加
+    function startVoiceWord() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("当前浏览器不支持语音识别，请手动输入");
+            return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "zh-CN";
+        recognition.interimResults = false;
+        recognition.start();
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.trim();
+            if (transcript) {
+                wordPool.push(transcript);
+                updateWordPoolUI();
+                speakText(transcript);
+                showTemporaryFeedback(`语音添加词语: ${transcript}`, "#d9e6c3");
+            }
+        };
+        recognition.onerror = () => {
+            correctionFeedbackArea.innerHTML = "🎙️ 没听清，再试一次吧~";
+        };
+    }
+
+    // 语音识别：用于词句纺纱输入框
+    function startVoiceForRawSentence() {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("当前浏览器不支持语音识别，请手动输入");
+            return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "zh-CN";
+        recognition.interimResults = false;
+        recognition.start();
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.trim();
+            if (transcript) {
+                rawSentenceInput.value = transcript;
+                updateOriginalMaterialPreview();
+                speakText(transcript);
+                showTemporaryFeedback(`语音转录: “${transcript}”`, "#d9e6c3");
+            }
+        };
+        recognition.onerror = () => {
+            correctionFeedbackArea.innerHTML = "🎙️ 语音识别失败，请重试或手动输入。";
+        };
+    }
+
+    // 故事纺织（AI 生成）
+    async function generateStoryFromWordPool() {
+        if (!ensureApiConfigured()) return;
+        if (wordPool.length === 0) {
+            aiStoryDisplay.innerHTML = "⚠️ 词语池还没有词语，请先添加一些词语吧。";
+            optimizedStoryBox.innerHTML = "<em>暂无故事，请先添加词语</em>";
+            return;
+        }
+        const difficulty = difficultySelect.value;
+        const wordsList = wordPool.join("、");
+        const systemPrompt = `你是故事织网的AI助手“小织蛛”，基于学生提供的词语集生成生动有趣、逻辑通顺的短故事。难度模式: ${difficulty}。
+        要求：
+        - 初级: 生成结构简单、充满童趣的故事，词语全部融入。
+        - 中级: 句子通顺，自然使用连接词，故事性强。
+        - 高级: 故事富有创意，可包含修辞，体现逻辑。
+        请只返回故事正文，不包含额外说明。`;
+        const userMsg = `学生收集的词语：${wordsList}。请将这些词语编织成一个完整的短故事（80~150字）。`;
+
+        try {
+            aiStoryDisplay.innerHTML = "🕷️ 小织蛛正在编织故事...";
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userMsg }
+                    ],
+                    temperature: 0.7,
+                })
+            });
+            if (!response.ok) throw new Error(`API ${response.status}`);
+            const data = await response.json();
+            let story = data.choices[0].message.content;
+            lastGeneratedStory = story;
+            aiStoryDisplay.innerHTML = story;
+            optimizedStoryBox.innerHTML = story;
+            updateOriginalMaterialPreview();
+            speakText("故事织好了，你真棒！");
+            correctionFeedbackArea.innerHTML = "🎉 故事生成成功！观察右栏 AI 示例，对比左侧你的词句纱线，看看怎样连成故事～";
+        } catch (err) {
+            console.error(err);
+            aiStoryDisplay.innerHTML = `❌ 故事生成失败: ${err.message} 请检查 API 配置或网络。`;
+            optimizedStoryBox.innerHTML = "生成失败，可稍后重试。";
+        }
+    }
+
+    function speakStory() {
+        if (lastGeneratedStory && lastGeneratedStory !== "生成故事占位") {
+            speakText(lastGeneratedStory);
+        } else {
+            const storyText = aiStoryDisplay.innerText;
+            if (storyText && !storyText.includes("小织蛛正在编织") && !storyText.includes("失败")) {
+                speakText(storyText);
+            } else {
+                correctionFeedbackArea.innerHTML = "📖 还没有故事，请先点击「故事纺织」生成故事吧。";
+            }
+        }
+    }
+
+    // 获取反馈：针对词句纺纱中的句子
+    async function getCorrectionFeedback() {
+        if (!ensureApiConfigured()) return;
+        let rawSentence = rawSentenceInput.value.trim();
+        if (!rawSentence) {
+            correctionFeedbackArea.innerHTML = "💡 请在左侧输入框中写一个句子（可以故意试试不完整的语序），我会帮你优化。";
+            return;
+        }
+        lastRawSentenceForCorrection = rawSentence;
+        const difficulty = difficultySelect.value;
+        const systemPrompt = `你是阅读障碍辅助专家，以“小织蛛”的亲切口吻给出纠偏建议。针对学生写出的原始句子“${rawSentence}”，分析其中可能的语序混乱、漏字、虚词缺失等问题，然后给出正确流畅的优化版本。难度模式: ${difficulty}。
+        必须返回JSON格式: { "optimized": "优化后完整句子", "feedbackMessage": "鼓励性纠偏建议（避免批评）", "errorType": "语序颠倒/漏字/形近混淆/其他" }。只返回JSON。`;
+        const userMsg = `原始句子: ${rawSentence}`;
+        try {
+            correctionFeedbackArea.innerHTML = "🕷️ 小织蛛正在分析你的句子...";
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userMsg }
+                    ],
+                    temperature: 0.5,
+                    response_format: { type: "json_object" }
+                })
+            });
+            if (!response.ok) throw new Error(`请求失败 ${response.status}`);
+            const data = await response.json();
+            const parsed = JSON.parse(data.choices[0].message.content);
+            const optimized = parsed.optimized || rawSentence;
+            const feedback = parsed.feedbackMessage || "试试这样说会更流畅哦~";
+            correctionFeedbackArea.innerHTML = `🕷️ ${feedback}<br>✨ 优化示范: “${optimized}”`;
+            speakText(optimized);
+            updateOriginalMaterialPreview();
+            // 在右侧 AI 示例框显示本次纠偏示范（不覆盖原有故事，追加区块）
+            let extraHtml = `<div style="border-top:1px solid #ddd; margin-top:12px; padding-top:8px;"><strong>📝 最新纠偏示范:</strong> “${optimized}”</div>`;
+            if (optimizedStoryBox.innerHTML.includes("纠偏示范")) {
+                let baseContent = lastGeneratedStory ? lastGeneratedStory : "";
+                optimizedStoryBox.innerHTML = baseContent + extraHtml;
+            } else {
+                optimizedStoryBox.innerHTML = (lastGeneratedStory ? lastGeneratedStory + "<br><br>" : "") + extraHtml;
+            }
+        } catch (err) {
+            console.error(err);
+            correctionFeedbackArea.innerHTML = `⚠️ 反馈服务出错: ${err.message}。请稍后再试。`;
+        }
+    }
+
+    function resetWordPool() {
+        wordPool = [];
+        updateWordPoolUI();
+        aiStoryDisplay.innerHTML = "🌟 词语池已清空，点击「故事纺织」需要先添加词语～";
+        optimizedStoryBox.innerHTML = "<em>等待新故事</em>";
+        lastGeneratedStory = "";
+        correctionFeedbackArea.innerHTML = "🕸️ 词语池已重置，重新收集词语吧~";
+        rawSentenceInput.value = "";
+        updateOriginalMaterialPreview();
+    }
+
+    function addManualWord() {
+        let word = wordInput.value.trim();
+        if (word === "") return;
+        wordPool.push(word);
+        updateWordPoolUI();
+        wordInput.value = "";
+        speakText(word);
+        showTemporaryFeedback(`添加词语: ${word}`, "#eef3e0");
+    }
+
+    // 监听句子变化，实时更新左侧预览
+    rawSentenceInput.addEventListener("input", () => {
+        updateOriginalMaterialPreview();
+    });
+
+    // 绑定事件
+    function bindEvents() {
+        // API 配置
+        apiConfigToggle.addEventListener("click", toggleApiConfigPanel);
+        document.addEventListener("click", handleDocumentClick);
+        apiHostSelect.addEventListener("change", handleHostSelectChange);
+        saveApiConfigBtn.addEventListener("click", saveApiConfig);
+        clearApiConfigBtn.addEventListener("click", clearApiConfig);
+
+        // 主功能
+        addWordBtn.addEventListener("click", addManualWord);
+        voiceWordBtn.addEventListener("click", startVoiceWord);
+        drawCardBtn.addEventListener("click", drawRandomCardAndAdd);
+        resetWordPoolBtn.addEventListener("click", resetWordPool);
+        generateStoryBtn.addEventListener("click", generateStoryFromWordPool);
+        speakStoryBtn.addEventListener("click", speakStory);
+        submitRawSentenceBtn.addEventListener("click", getCorrectionFeedback);
+        voiceRawSentenceBtn.addEventListener("click", startVoiceForRawSentence);
+        wordInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") addManualWord();
+        });
+    }
+
+    // 初始演示词语
+    function initDemoWords() {
+        wordPool = ["月亮", "小猫", "跳舞"];
+        updateWordPoolUI();
+        updateOriginalMaterialPreview();
+        aiStoryDisplay.innerHTML = "✨ 已为你准备了初始词语：月亮、小猫、跳舞。点击「故事纺织」开始织网吧！";
+        optimizedStoryBox.innerHTML = "<em>点击上方「故事纺织」按钮</em>";
+    }
+
+    loadApiConfig();
+    bindEvents();
+    initDemoWords();
+    if (window.speechSynthesis) {
+        setTimeout(() => {
+            speakText("欢迎来到故事织网，让我们一起创造有趣的故事");
+        }, 500);
+    }
+</script>
+</body>
+</html>
